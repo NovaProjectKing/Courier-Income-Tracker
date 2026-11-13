@@ -33,7 +33,17 @@ jobs:
         run: npm ci
 
       - name: Lint JavaScript
-        run: npx eslint . --max-warnings=0
+        run: |
+          set +e
+          npm run lint > lint-output.txt 2>&1
+          lint_status=$?
+          cat lint-output.txt
+          if [ "$lint_status" -ne 0 ]; then
+            while IFS= read -r line; do
+              [ -z "$line" ] || echo "::error::$line"
+            done < lint-output.txt
+          fi
+          exit "$lint_status"
 
       - name: Set up Java
         uses: actions/setup-java@v4
